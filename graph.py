@@ -3,7 +3,7 @@ import random, time, math, itertools
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 from enum import Enum
-import constant
+import constant as Constant
 
 
 
@@ -12,6 +12,11 @@ class Observation(Enum):
 	RO = 2
 	OL = 3
 	OR = 4
+
+class Edge(Enum):
+	O=0
+	L=1
+	R=2
 
 def observation_str(obs):
 	if obs == Observation.LO:
@@ -23,40 +28,82 @@ def observation_str(obs):
 	elif obs == Observation.OR:
 		return "O --> R"
 
+def exit_edge(obs):
+	if obs == Observation.LO or obs == Observation.RO:
+		return Edge.O
+	elif obs == Observation.OL:
+		return Edge.L
+	elif obs == Observation.OR:
+		return Edge.R
+
 class Vertex:
 
-	def __init__(self):
+	def __init__(self,index, graph):
+		self.G = graph
 		self.L = None
 		self.R = None
 		self.O = None
-		self.random_switch_state()
+		self.index=index
+		self.switch_state = random.choice([True, False]) # True denoted O-L
+
+	def get_predecessor(self, incomming_edge):
+		''' returns predecessor entering the current vertex in incomming_edge (R,L,O) along 
+			with the edge predecessor exited through to get to the current vertex'''
+		if incomming_edge == Edge.L:
+			predecessor = self.G.vertexes[self.L]
+		elif incomming_edge == Edge.R:
+			predecessor = self.G.vertexes[self.R]
+		else:
+			predecessor = self.G.vertexes[self.O]
+		return (predecessor, predecessor.neighbor_edge(self))
+
+	def neighbor_edge(self, neighbor):
+		''' returs the current vertex edge to neighbor '''
+		if self.L == neighbor.index:
+			e = Edge.L
+		elif self.R == neighbor.index:
+			e = Edge.R
+		elif self.O == neighbor.index:
+			e = Edge.O
+		else:
+			print "not neighbors"
+			e = None # these is not a neighbor
+		return e
+
+
+	def get_exit_connection(to_vertex):
+		''' returns the exit connection (L,R,O) for exiting the current
+			node towards to_vertex (which is adjacent node) '''
+		if self.L==to_vertex.index:
+			return Edge.L
+		elif self.R==to_vertex.index:
+			return Edge.R
+		elif self.O==to_vertex.index:
+			return Edge.O
 
 	def is_full(self):
 		return 	self.L != None and self.R != None and self.O != None
-	
-	def random_switch_state(self):
-		self.switch_state = random.choice([True, False])
 	
 	def flip_switch_state(self):
 		self.switch_state = not self.switch_state	
 
 	def observation(self, source):
 		if self.L == source:
-			true_obs = Observation(1)
+			true_obs = Observation.LO
 			next = self.O 
 		elif self.R == source:
-			true_obs = Observation(2)
+			true_obs = Observation.RO
 			next = self.O 
 		else:
 			if self.switch_state == True:
-				true_obs = Observation(3)
+				true_obs = Observation.OL
 				next = self.L
 			else:
-				true_obs = Observation(4)
+				true_obs = Observation.OR
 				next = self.R
 						
 					
-		if random.uniform(0, 1) < 1-constant.p:
+		if random.uniform(0, 1) < 1-Constant.p:
 			return true_obs, next
 		else:
 			wrong_obs = [Observation(i) for i in range(1, 4) if Observation(i) != true_obs] 
@@ -103,12 +150,22 @@ class Graph:
 				return False
 		if len(self.vertexes) != self.N:
 				return False 		
-		return True	
+		return True
+
+	def randomize_switches(self):
+		for vertex in self.vertexes:
+			if random.randint(0,1) == 0:
+				vertex.flip_switch_state()
+
+	def flip_random_switch(self):
+		v_index = random.randint(Constant.N-1)
+		self.vertexes[v_index].flip_switch_state()
+		return v_index
 
 	def generate_vertexes(self):
 		self.vertexes = []	
-		for _ in range(self.N):
-			self.vertexes.append(Vertex())
+		for i in range(self.N):
+			self.vertexes.append(Vertex(i,self))
 
 	def connect_vertexes(self):
 		for i in range(self.N-1):
@@ -125,14 +182,13 @@ class Graph:
 				tries += 1
 	
 	def generate_observations(self):
-		obs_length = 10
 		observations = []		
 		i = 1		
 		start = random.randint(0, self.N-1)
 		sources = [self.vertexes[start].L, self.vertexes[start].R, self.vertexes[start].O]
 		source = random.choice(sources)
 		next = start
-		while i < obs_length:
+		while i < Constant.OBS_LEN:
 			obs, new_next = self.vertexes[next].observation(source)
 			source = next
 			next = new_next
@@ -145,9 +201,6 @@ class Graph:
 		for i in range(self.N):
 			self.vertexes[i].print_content(i)
 	
-	
-g = Graph(20)
-g.print_content()
-observations = g.generate_observations()
+
 
 					
