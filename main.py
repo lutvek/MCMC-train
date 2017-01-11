@@ -112,6 +112,10 @@ if __name__ == '__main__':
 	g.print_content()
 	observations = g.generate_observations()
 
+	print g.get_sigma()
+	g.set_sigma([0,4,1,1,1])
+	print g.get_sigma()
+
 	true_sum = 0
 	for vertex in g.vertexes:
 		true_sum += p_s_O_G_Sigma(vertex, observations)
@@ -125,4 +129,4 @@ if __name__ == '__main__':
 
 	print("The true sum is " + str(true_sum))
 	print("The dummy sum is " + str(dummy_sum))
-	print "test true", p_O_G_sigma(g, observations)
+	

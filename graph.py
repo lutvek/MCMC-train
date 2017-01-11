@@ -48,7 +48,7 @@ class Vertex:
 
 	def get_predecessor(self, incomming_edge):
 		''' returns predecessor entering the current vertex in incomming_edge (R,L,O) along 
-			with the edge predecessor exited through to get to the current vertex'''
+		with the edge predecessor exited through to get to the current vertex'''
 		if incomming_edge == Edge.L:
 			predecessor = self.G.vertexes[self.L]
 		elif incomming_edge == Edge.R:
@@ -143,6 +143,28 @@ class Graph:
 		while not self.is_valid():
 			self.generate_vertexes()
 			self.connect_vertexes()
+
+	def get_sigma(self):
+		''' returns sigma as a list with values for how each switch is set,
+		1 denoting L-O and 0 denotong R-O'''
+		sigmas = []
+		for v in self.vertexes:
+			switch_setting = v.switch_state
+			if switch_setting: # L-O
+				sigmas.append(1)
+			else:
+				sigmas.append(0)
+		return sigmas
+
+	def set_sigma(self, sigma):
+		''' sets the switches to the binary list in sigma where 1 denotes L-O
+		and 0 denotes R-0'''
+		if len(sigma) != len(self.vertexes):
+			print "ERROR in set_sigma: sigma must be of the same length as the number of vertexes"
+			return 
+		for i,v in enumerate(self.vertexes):
+			if v.switch_state != bool(sigma[i]): 
+				v.flip_switch_state()
 	
 	def is_valid(self):
 		for vertex in self.vertexes:
