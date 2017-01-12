@@ -9,7 +9,9 @@ Below is what we MUST do:
 
 Below is what we COULD do if we have time:
 
+
 * Optimize MH (now p_star_old_state is calculated more than once)
+* Add hashmap for MH (same states does not to be calculated more than once)
 * Optimize c(s,t,obs) (collapse some if states)
 * Optimize new_sigma not in sigmas as we index this if new_sigma is in sigmas...
 * Find other stuff to optimize...
