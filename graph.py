@@ -211,13 +211,15 @@ class Graph:
 		source = random.choice(sources)
 		next = start
 		while i < Constant.OBS_LEN:
+			if i == Constant.OBS_LEN-1: # for returning the "true" end vertex
+				last = next
 			obs, new_next = self.vertexes[next].observation(source)
 			source = next
 			next = new_next
 			observations.append(obs)
 			i += 1
 			print("Got observation " + observation_str(obs) + " go to next " + str(next))
-		return observations
+		return observations, last
 
 	def print_content(self):
 		for i in range(self.N):

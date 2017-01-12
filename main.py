@@ -5,7 +5,6 @@ import constant as Constant
 
 def sample(probabilities):
 	''' return the index from the list probabilities'''
-
 	indexes = np.arange(len(probabilities))
 	probabilities /= np.sum(probabilities) # normalize
 	return sum(np.random.choice(indexes, 1, p=probabilities),0)
@@ -35,10 +34,20 @@ def metropolis_hastings(iterations, obs, g):
 
 	return sigma.get_sigma()
 
-def p_star(sigma):
-	''' returns p(O|G,sigma) by summing out s from 
-		p(s,O|G,sigma) '''
-	pass
+def complete_prob(s, obs, g, sigmas, probs):
+	''' returns p(s|G,O) (full probability) to end up in state s after obs observations. sigmas are
+		the sigmas generated from MH, each with probability in probs for the same index '''
+	s_prob = 0.0
+	for i, sigma in enumerate(sigmas):
+		g.set_sigma(sigma)
+		sigma_prob = probs[i]
+		s_and_O_prob = p_s_O_G_Sigma(s, obs) # s switch state changes with g? (should be fine)
+		O_prob = p_O_G_sigma(g, obs)
+		s_prob += s_and_O_prob*sigma_prob/O_prob
+
+	return s_prob
+
+
 
 def p_s_O_G_Sigma(s, obs):
 	''' returns p(s,O|G,sigma) '''
@@ -129,10 +138,20 @@ def create_distribution(obs, iters, g):
 if __name__ == '__main__':
 	g = Graph(Constant.N) 
 	g.print_content()
-	observations = g.generate_observations()
+	observations, end_vertex = g.generate_observations()
+	print "the last vertex is: ", end_vertex
 
 	sigmas, probs = create_distribution(observations, 100, g)
 	print sigmas, probs
+
+	print complete_prob(g.vertexes[0], observations, g, sigmas,probs)
+	print complete_prob(g.vertexes[1], observations, g, sigmas,probs)
+	print complete_prob(g.vertexes[2], observations, g, sigmas,probs)
+	print complete_prob(g.vertexes[3], observations, g, sigmas,probs)
+
+
+
+
 
 
 	
