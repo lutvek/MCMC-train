@@ -33,7 +33,7 @@ def metropolis_hastings(iterations, obs, g):
 		if u >= r:
 			sigma.vertexes[flipped_switch_index].flip_switch_state()
 
-	return sigma
+	return sigma.get_sigma()
 
 def p_star(sigma):
 	''' returns p(O|G,sigma) by summing out s from 
@@ -107,26 +107,32 @@ def p_O_G_sigma(g, obs):
 
 	return prob
 
+def create_distribution(obs, iters, g):
+	''' returns distribution of sigma sampled using Metropolis Hastings '''
+	sigmas = []
+	counts = []
+
+	for i in range(iters):
+		# sample new sigma using MH
+		new_sigma = metropolis_hastings(Constant.MH_ITERS, obs, g)
+		# check if new_sigma has been sampled before
+		if new_sigma not in sigmas:
+			sigmas.append(new_sigma)
+			counts.append(1.0)
+		else:
+			index = sigmas.index(new_sigma)
+			counts[index] += 1.0
+
+	probs = counts / np.sum(counts)
+	return sigmas, probs
+
 if __name__ == '__main__':
 	g = Graph(Constant.N) 
 	g.print_content()
 	observations = g.generate_observations()
 
-	print g.get_sigma()
-	g.set_sigma([0,4,1,1,1])
-	print g.get_sigma()
+	sigmas, probs = create_distribution(observations, 100, g)
+	print sigmas, probs
 
-	true_sum = 0
-	for vertex in g.vertexes:
-		true_sum += p_s_O_G_Sigma(vertex, observations)
 
-	for vertex in g.vertexes:
-		vertex.flip_switch_state()
-
-	dummy_sum = 0
-	for vertex in g.vertexes:
-		dummy_sum += p_s_O_G_Sigma(vertex, observations)
-
-	print("The true sum is " + str(true_sum))
-	print("The dummy sum is " + str(dummy_sum))
 	

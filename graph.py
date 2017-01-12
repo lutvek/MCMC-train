@@ -180,7 +180,7 @@ class Graph:
 				vertex.flip_switch_state()
 
 	def flip_random_switch(self):
-		v_index = random.randint(Constant.N-1)
+		v_index = random.randint(0,Constant.N-1)
 		self.vertexes[v_index].flip_switch_state()
 		return v_index
 
