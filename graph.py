@@ -1,7 +1,7 @@
 import numpy as np
 import random, time, math, itertools
 from collections import OrderedDict
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from enum import Enum
 import constant as Constant
 
@@ -66,7 +66,7 @@ class Vertex:
 		elif self.O == neighbor.index:
 			e = Edge.O
 		else:
-			print "not neighbors"
+			print("not neighbors")
 			e = None # these is not a neighbor
 		return e
 
@@ -146,13 +146,13 @@ class Graph:
 
 	def get_sigma(self):
 		''' returns sigma as a list with values for how each switch is set,
-		1 denoting L-O and 0 denotong R-O'''
+		1 denoting L-O and 0 denoting R-O'''
 		sigmas = []
 		for v in self.vertexes:
 			switch_setting = v.switch_state
 			if switch_setting: # L-O
 				sigmas.append(1)
-			else:
+			else: # R-O
 				sigmas.append(0)
 		return sigmas
 
@@ -160,7 +160,7 @@ class Graph:
 		''' sets the switches to the binary list in sigma where 1 denotes L-O
 		and 0 denotes R-0'''
 		if len(sigma) != len(self.vertexes):
-			print "ERROR in set_sigma: sigma must be of the same length as the number of vertexes"
+			print("ERROR in set_sigma: sigma must be of the same length as the number of vertexes")
 			return 
 		for i,v in enumerate(self.vertexes):
 			if v.switch_state != bool(sigma[i]): 
@@ -218,7 +218,7 @@ class Graph:
 			next = new_next
 			observations.append(obs)
 			i += 1
-			print("Got observation " + observation_str(obs) + " go to next " + str(next))
+			#print("Got observation " + observation_str(obs) + " go to next " + str(next))
 		return observations, last
 
 	def print_content(self):

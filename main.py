@@ -2,6 +2,9 @@ import numpy as np
 import graph
 from graph import Observation, Edge, Graph
 import constant as Constant
+import time
+import constant as Constant
+import matplotlib.pyplot as plt
 
 def sample(probabilities):
 	''' return the index from the list probabilities'''
@@ -15,15 +18,30 @@ def metropolis_hastings(iterations, obs, g):
 	# initialize a random sigma (switch settings) 
 	sigma = g
 	sigma.randomize_switches()
+	
+	dict={}
+	list_to_string=lambda sigma: ','.join(str(x) for x in sigma.get_sigma())
 
 	for i in range(iterations):
 		# change sigma by inverting a switch in the graph (sample from q)
 
-		p_star_old_state = p_O_G_sigma(sigma, obs)
+		cached=list_to_string(sigma)
+		if cached in dict:
+			p_star_old_state =dict[cached]
+		else:
+			p_star_old_state = p_O_G_sigma(sigma, obs)
+			dict[cached]=p_star_old_state
+		#p_star_old_state = p_O_G_sigma(sigma, obs)
 
 		flipped_switch_index = sigma.flip_random_switch()
 
-		p_star_new_state = p_O_G_sigma(sigma, obs)
+		cached=list_to_string(sigma)
+		if cached in dict:
+			p_star_new_state =dict[cached]
+		else:
+			p_star_new_state = p_O_G_sigma(sigma, obs)
+			dict[cached]=p_star_new_state
+		#p_star_new_state = p_O_G_sigma(sigma, obs)
 
 		alpha = p_star_new_state / p_star_old_state # TODO safeguard against 0
 		r = min (1,alpha)
@@ -106,7 +124,7 @@ def c(s,t, obs):
 	elif e == Edge.R and switch_state_L:
 		return 0.0
 
-	print "c(s,t) crashed: ", e, o, exit_edge_f, switch_state_L
+	print("c(s,t) crashed: ", e, o, exit_edge_f, switch_state_L)
 
 def p_O_G_sigma(g, obs):
 	''' returns p(O|G,sigma) by summing out s from p(s,O|G,sigma) '''
@@ -135,23 +153,58 @@ def create_distribution(obs, iters, g):
 	probs = counts / np.sum(counts)
 	return sigmas, probs
 
+
+def run_tests():
+	# number of vertexes
+	Ns=[x for x in range(4,24,2)]
+	#Os=[x for x in range(2,20,2)]
+	Os=[23]
+	Constant.OBS_LEN=23
+	res=np.zeros((len(Ns),len(Os)))
+	for i,n in enumerate(Ns):
+		for j,o in enumerate(Os):
+			Constant.N=n
+			Constant.OBS_LEN=o
+			g = Graph(Constant.N) 
+			#g.print_content()
+			observations, end_vertex = g.generate_observations()
+			print("the last vertex is: ", end_vertex)
+			sigmas, probs = create_distribution(observations, 100, g)
+			#print('execution time='+str((end-start)))
+			prob=complete_prob(g.vertexes[end_vertex], observations, g, sigmas,probs)
+			for vert in g.vertexes:
+				print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
+			print('prob (correct) = '+str(prob))
+			res[i][j]=prob
+
+	plt.figure()
+	plt.plot(Ns,res[:,0], 'o')	
+	plt.show()
+
+
 if __name__ == '__main__':
-	g = Graph(Constant.N) 
-	g.print_content()
-	observations, end_vertex = g.generate_observations()
-	print "the last vertex is: ", end_vertex
+	run_tests()
+	#g = Graph(Constant.N) 
+	#g.print_content()
+	#observations, end_vertex = g.generate_observations()
+	#print("the last vertex is: ", end_vertex)
+	#run_tests()
+	#start=time.time()
+	#sigmas, probs = create_distribution(observations, 100, g)
+	#end=time.time()
+	#print('execution time='+str((end-start)))
+	#print(sigmas, probs)
 
-	sigmas, probs = create_distribution(observations, 100, g)
-	print sigmas, probs
-
-	print complete_prob(g.vertexes[0], observations, g, sigmas,probs)
-	print complete_prob(g.vertexes[1], observations, g, sigmas,probs)
-	print complete_prob(g.vertexes[2], observations, g, sigmas,probs)
-	print complete_prob(g.vertexes[3], observations, g, sigmas,probs)
-
-
-
-
-
-
+	#print(complete_prob(g.vertexes[0], observations, g, sigmas,probs))
+	#print(complete_prob(g.vertexes[1], observations, g, sigmas,probs))
+	#print( complete_prob(g.vertexes[2], observations, g, sigmas,probs))
+	#print( complete_prob(g.vertexes[3], observations, g, sigmas,probs))
+	#best_vert=-1
+	#best_prob=-1
+	#for i,vert in enumerate(g.vertexes):
+	#	prob=complete_prob(vert, observations, g, sigmas,probs)
+	#	if prob>best_prob:
+	#		best_vert=i
+	#		best_prob=prob
+	#print('best vertex = '+str(best_vert)+', probability = '+str(best_prob))
 	
