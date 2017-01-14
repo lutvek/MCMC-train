@@ -12,16 +12,14 @@ def sample(probabilities):
 	probabilities /= np.sum(probabilities) # normalize
 	return sum(np.random.choice(indexes, 1, p=probabilities),0)
 
-def metropolis_hastings(iterations, obs, g):
+def metropolis_hastings(iterations, obs, g, dict):
 	''' returns one switch settings as induced by MH'''
 
 	# initialize a random sigma (switch settings) 
 	sigma = g
 	sigma.randomize_switches()
 	
-	dict={}
 	list_to_string=lambda sigma: ','.join(str(x) for x in sigma.get_sigma())
-
 	for i in range(iterations):
 		# change sigma by inverting a switch in the graph (sample from q)
 
@@ -139,9 +137,10 @@ def create_distribution(obs, iters, g):
 	sigmas = []
 	counts = []
 
+	dict={}
 	for i in range(iters):
 		# sample new sigma using MH
-		new_sigma = metropolis_hastings(Constant.MH_ITERS, obs, g)
+		new_sigma = metropolis_hastings(Constant.MH_ITERS, obs, g, dict)
 		# check if new_sigma has been sampled before
 		if new_sigma not in sigmas:
 			sigmas.append(new_sigma)
@@ -156,10 +155,10 @@ def create_distribution(obs, iters, g):
 
 def run_tests():
 	# number of vertexes
-	Ns=[x for x in range(4,24,2)]
-	#Os=[x for x in range(2,20,2)]
-	Os=[23]
-	Constant.OBS_LEN=23
+	#Ns=[x for x in range(4,24,2)]
+	Ns=[10]
+	Os=[x for x in range(5,30,5)]
+	#Os=[23]
 	res=np.zeros((len(Ns),len(Os)))
 	for i,n in enumerate(Ns):
 		for j,o in enumerate(Os):
@@ -169,8 +168,10 @@ def run_tests():
 			#g.print_content()
 			observations, end_vertex = g.generate_observations()
 			print("the last vertex is: ", end_vertex)
+			start=time.time()
 			sigmas, probs = create_distribution(observations, 100, g)
-			#print('execution time='+str((end-start)))
+			end=time.time()
+			print('execution time='+str((end-start)))
 			prob=complete_prob(g.vertexes[end_vertex], observations, g, sigmas,probs)
 			for vert in g.vertexes:
 				print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
