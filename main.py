@@ -132,6 +132,14 @@ def p_O_G_sigma(g, obs):
 
 	return prob
 
+
+def calc_true_sigma_prob(s, obs, g):
+	''' returns p(s|O,G,sigma) where sigma is the sigma used to generate O '''
+	numerator = p_s_O_G_Sigma(s,obs)
+	denom = p_O_G_sigma(g, obs)
+	return numerator/denom
+
+
 def create_distribution(obs, iters, g):
 	''' returns distribution of sigma sampled using Metropolis Hastings '''
 	sigmas = []
@@ -155,11 +163,12 @@ def create_distribution(obs, iters, g):
 
 def run_tests():
 	# number of vertexes
-	#Ns=[x for x in range(4,24,2)]
-	Ns=[10]
-	Os=[x for x in range(5,30,5)]
+	Ns=[x for x in range(4,20,6)]
+	#Ns=[10]
+	Os=[x for x in range(5,20,8)]
 	#Os=[23]
 	res=np.zeros((len(Ns),len(Os)))
+	res_true=np.zeros((len(Ns),len(Os)))
 	for i,n in enumerate(Ns):
 		for j,o in enumerate(Os):
 			Constant.N=n
@@ -167,19 +176,24 @@ def run_tests():
 			g = Graph(Constant.N) 
 			#g.print_content()
 			observations, end_vertex = g.generate_observations()
+			prob_true=calc_true_sigma_prob(g.vertexes[end_vertex],observations,g)
 			print("the last vertex is: ", end_vertex)
+			print("obs. len. = ",o, ", # vertexes = ", n)
 			start=time.time()
 			sigmas, probs = create_distribution(observations, 100, g)
 			end=time.time()
 			print('execution time='+str((end-start)))
 			prob=complete_prob(g.vertexes[end_vertex], observations, g, sigmas,probs)
-			for vert in g.vertexes:
-				print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
-			print('prob (correct) = '+str(prob))
+			#for vert in g.vertexes:
+			#	print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
+			print('prob (estimated) = '+str(prob))
+			print('prob (true) = '+str(prob_true))
 			res[i][j]=prob
+			res_true[i][j]=prob_true
 
 	plt.figure()
-	plt.plot(Ns,res[:,0], 'o')	
+	plt.plot(Ns,res[:,1], 'o')	
+	plt.plot(Ns,res_true[:,1], 'x')	
 	plt.show()
 
 
