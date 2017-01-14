@@ -164,36 +164,47 @@ def create_distribution(obs, iters, g):
 def run_tests():
 	# number of vertexes
 	#Ns=[x for x in range(4,20,6)]
-	Os=[x for x in range(10,100,5)]
+	Os=[x for x in range(2,20,2)]
 	#Os=[23]
-	res=[]
-	res_true=[]
+	iters=10
+	res_mean=np.zeros((len(Os),iters))
+	res_true_mean=np.zeros((len(Os),iters))
 	# set number of vertexes
-	Constant.N=50
-	for o in Os:
-		Constant.OBS_LEN=o
-		g = Graph(Constant.N) 
-		#g.print_content()
-		observations, end_vertex = g.generate_observations()
-		prob_true=calc_true_sigma_prob(g.vertexes[end_vertex],observations,g)
-		print("the last vertex is: ", end_vertex)
-		print("obs. len. = ",o, ", # vertexes = ", Constant.N)
-		start=time.time()
-		sigmas, probs = create_distribution(observations, 500, g)
-		end=time.time()
-		print('execution time='+str((end-start)))
-		prob=complete_prob(g.vertexes[end_vertex], observations, g, sigmas,probs)
-		#for vert in g.vertexes:
-		#	print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
-		print('prob (estimated) = '+str(prob))
-		print('prob (true) = '+str(prob_true))
-		res.append(prob)
-		res_true.append(prob_true)
+	Constant.N=8
+	for i in range(0,iters):
+		for j,o in enumerate(Os):
+			Constant.OBS_LEN=o
+			g = Graph(Constant.N) 
+			#g.print_content()
+			observations, end_vertex = g.generate_observations()
+			prob_true=calc_true_sigma_prob(g.vertexes[end_vertex],observations,g)
+			print("the last vertex is: ", end_vertex)
+			print("iteration: ",i,", obs. len. = ",o, ", # vertexes = ", Constant.N)
+			start=time.time()
+			sigmas, probs = create_distribution(observations, 500, g)
+			end=time.time()
+			print('execution time='+str((end-start)))
+			prob=complete_prob(g.vertexes[end_vertex], observations, g, sigmas,probs)
+			#for vert in g.vertexes:
+			#	print('prob. ='+str(complete_prob(vert, observations, g, sigmas,probs)))
+			print('prob (estimated) = '+str(prob))
+			print('prob (true) = '+str(prob_true))
+			res_mean[j][i]=prob
+			res_true_mean[j][i]=prob_true
 
 	plt.figure()
 	plt.axis([Os[0]-2, Os[-1]+2, -0.2,1.2])
-	plt.plot(Os,res, 'o')	
-	plt.plot(Os,res_true, 'gx')	
+	mean=np.mean(res_mean,axis=1, keepdims=True)
+	variance=[np.amin(res_mean,axis=1),np.amax(res_mean,axis=1)]#np.var(res_mean, axis=1)#
+	print(variance)
+	print(res_mean)
+	print(res_true_mean)
+	print(np.mean(res_mean,axis=1))
+	print(np.mean(res_true_mean,axis=1))
+	plt.errorbar(Os, mean, yerr=variance)
+	plt.figure()
+	plt.plot(Os,np.mean(res_mean, axis=1,keepdims=True), 'o')	
+	plt.plot(Os,np.mean(res_true_mean, axis=1,keepdims=True), 'gx')	
 	plt.show()
 
 
