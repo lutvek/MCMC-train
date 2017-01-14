@@ -1,4 +1,4 @@
 p = 0.05
 N = 10
 OBS_LEN = 10
-MH_ITERS = 200
+MH_ITERS = 500
